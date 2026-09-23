@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="it" dir="ltr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Ristorante Bersagliere | Cucina di Mare, Carni & Pizzeria a Casalecchio</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Three.js Library for 3D Hero -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      future: {
+        hoverOnlyWhenSupported: true,
+      },
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            gold: {
+              300: '#f3e5ab',
+              400: '#e6ca65',
+              500: '#c5a059',
+              600: '#a37f37',
+              700: '#7e5e24',
+            },
+            dark: {
+              950: '#070709',
+              900: '#101014',
+              850: '#16161d',
+              800: '#1f1f28',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* بهینه‌سازی لمس فوری */
+    *, *::before, *::after {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* موتور ۳ بعدی پرسپکتیو با شتاب‌دهنده گرافیکی GPU */
+    .perspective-container {
+      perspective: 1200px;
+      perspective-origin: center center;
+    }
+
+    /* انیمیشن ورود ۳ بعدی اسکرول (کامپیوتر و گوشی) */
+    .reveal-3d {
+      opacity: 0;
+      transform: perspective(1000px) rotateX(12deg) translateY(35px) scale(0.96);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal-3d.revealed {
+      opacity: 1;
+      transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1);
+    }
+
+    /* کارت‌های ۳ بعدی با عمق لمسی */
+    .card-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+      will-change: transform;
+    }
+    @media (hover: hover) {
+      .card-3d:hover {
+        transform: perspective(1000px) translateZ(12px) rotateX(-2deg);
+        box-shadow: 0 20px 35px -10px rgba(197, 160, 89, 0.15);
+      }
+    }
+    .card-3d:active {
+      transform: perspective(1000px) translateZ(-6px) scale(0.98);
+    }
+
+    /* اسلایدر گالری سه بعدی (3D Perspective Slide Flip) */
+    .slide-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.4s ease;
+      will-change: transform, opacity;
+    }
+
+    /* پاپ‌آپ ضد پرش و چشمک‌زدن */
+    #dish-modal {
+      isolation: isolate;
+      transition: opacity 0.2s ease-out;
+      will-change: opacity;
+    }
+    #modal-box {
+      transform: perspective(1000px) rotateX(8deg) translateY(20px) scale(0.96);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+    #dish-modal.active {
+      display: flex !important;
+      opacity: 1 !important;
+    }
+    #dish-modal.active #modal-box {
+      transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1) !important;
+    }
+  </style>
+</head>
+<body class="bg-dark-950 text-stone-300 font-sans antialiased selection:bg-gold-500 selection:text-dark-950">
+
+  <!-- Navigation Bar -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-dark-950/90 backdrop-blur-md border-b border-stone-800/80 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#home" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-full border border-gold-500/40 flex items-center justify-center text-gold-400 group-hover:scale-105 transition-transform duration-300">
+          <i class="fa-solid fa-utensils text-sm"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-serif text-xl tracking-wider text-white font-bold uppercase">Bersagliere</span>
+          <span class="text-[10px] uppercase tracking-widest text-gold-500 font-medium -mt-1">Casalecchio di Reno</span>
+        </div>
+      </a>
+
+      <!-- Desktop Links -->
+      <nav class="hidden lg:flex items-center gap-8 text-sm font-medium tracking-wide text-stone-300">
+        <a href="#home" class="hover:text-gold-400 transition-colors">Home</a>
+        <a href="#chi-siamo" class="hover:text-gold-400 transition-colors">La Nostra Storia</a>
+        <a href="#menu" class="hover:text-gold-400 transition-colors">Menù & Cucina</a>
+        <a href="#cantina" class="hover:text-gold-400 transition-colors">Cantina Vini</a>
+        <a href="#eventi" class="hover:text-gold-400 transition-colors">Eventi Privati</a>
+        <a href="#contatti" class="hover:text-gold-400 transition-colors">Contatti</a>
+      </nav>
+
+      <!-- Desktop CTA & Phone -->
+      <div class="hidden sm:flex items-center gap-5">
+        <a href="tel:3332078906" class="text-stone-300 hover:text-gold-400 text-sm font-medium flex items-center gap-2">
+          <i class="fa-solid fa-phone text-xs text-gold-500"></i>
+          <span>333 2078906</span>
+        </a>
+        <a href="#prenota" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-bold text-xs tracking-wider uppercase hover:brightness-110 shadow-lg shadow-gold-500/20 transition-all duration-300">
+          Prenota un Tavolo
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button id="mobile-toggle" aria-label="Apri menu" class="lg:hidden text-2xl text-stone-300 hover:text-white p-2">
+        <i class="fa-solid fa-bars-staggered"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Menu Panel -->
+    <div id="mobile-nav" class="hidden lg:hidden bg-dark-900 border-b border-stone-800 px-6 py-6 space-y-4">
+      <a href="#home" class="block text-base text-stone-200 hover:text-gold-400">Home</a>
+      <a href="#chi-siamo" class="block text-base text-stone-200 hover:text-gold-400">La Nostra Storia</a>
+      <a href="#menu" class="block text-base text-stone-200 hover:text-gold-400">Menù & Cucina</a>
+      <a href="#cantina" class="block text-base text-stone-200 hover:text-gold-400">Cantina Vini</a>
+      <a href="#eventi" class="block text-base text-stone-200 hover:text-gold-400">Eventi Privati</a>
+      <a href="#contatti" class="block text-base text-stone-200 hover:text-gold-400">Contatti & Orari</a>
+      <div class="pt-4 border-t border-stone-800">
+        <a href="#prenota" class="block w-full text-center py-3 rounded-full bg-gold-500 text-dark-950 font-bold uppercase text-xs">
+          Prenota Ora
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section with Interactive 3D Canvas -->
+  <section id="home" class="relative min-h-screen flex items-center justify-center pt-24 pb-16 overflow-hidden">
+    
+    <!-- Three.js 3D Background Canvas -->
+    <canvas id="hero-3d-canvas" class="absolute inset-0 w-full h-full z-0 pointer-events-none"></canvas>
+
+    <!-- Dark Gradient Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/60 to-dark-950/40 z-[1] pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-4 text-center mt-6">
+      <div class="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-semibold tracking-widest uppercase mb-6 backdrop-blur-sm">
+        <i class="fa-solid fa-star text-[10px]"></i> Cucina Mediterranea a Casalecchio
+      </div>
+
+      <h1 class="font-serif text-4xl sm:text-6xl md:text-7xl font-extrabold text-white leading-tight tracking-tight mb-6 drop-shadow-lg">
+        L'Autentica Cucina di Mare <br>
+        <span class="italic font-normal text-gold-400 font-serif">nel Cuore della Tradizione</span>
+      </h1>
+
+      <p class="text-stone-300 text-base sm:text-lg max-w-2xl mx-auto mb-10 font-light leading-relaxed">
+        Pescato freschissimo di prima scelta, tagli di carne selezionati, pizzeria gourmet con impasti a lenta lievitazione e una prestigiosa cantina di oltre 166 etichette.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#prenota" class="w-full sm:w-auto px-8 py-4 rounded-full bg-gold-500 hover:bg-gold-400 text-dark-950 font-bold uppercase text-xs tracking-wider transition-all duration-300 shadow-xl shadow-gold-500/20 transform hover:-translate-y-0.5">
+          Prenota un Tavolo Online
+        </a>
+        <a href="#menu" class="w-full sm:w-auto px-8 py-4 rounded-full bg-dark-900/90 hover:bg-dark-800 text-stone-200 border border-stone-700/80 font-medium text-xs tracking-wider uppercase backdrop-blur-md transition-all duration-300">
+          Esplora Piatti & Gallerie
+        </a>
+      </div>
+
+      <div class="mt-8 text-stone-500 text-[11px] tracking-widest uppercase flex items-center justify-center gap-2">
+        <i class="fa-solid fa-images text-gold-500 text-xs"></i> Tocca ciascun piatto per scorrere le foto e visualizzare gli ingredienti
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <a href="#features-nav" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-stone-500 hover:text-gold-400 transition-colors flex flex-col items-center gap-2 text-xs tracking-widest uppercase z-10">
+      <span>Esplora</span>
+      <i class="fa-solid fa-chevron-down animate-bounce text-sm text-gold-500"></i>
+    </a>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- 4 FEATURE BADGES (NAVIGAZIONE DIRETTA + EFFETTI 3D)            -->
+  <!-- ============================================================== -->
+  <section id="features-nav" class="border-y border-stone-800/80 bg-dark-900 py-12 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- 1. Pesce Fresco -->
+        <div onclick="navigateMenuCategory('pesce')" class="card-3d reveal-3d p-6 rounded-2xl bg-dark-950/80 border border-stone-800/80 hover:border-gold-500/70 shadow-lg cursor-pointer group">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-400 text-2xl flex-shrink-0 group-hover:bg-gold-500 group-hover:text-dark-950 transition-colors">
+                <i class="fa-solid fa-fish"></i>
+              </div>
+              <div>
+                <h4 class="text-white font-semibold text-base font-serif group-hover:text-gold-400 transition-colors">Pesce Fresco</h4>
+                <p class="text-xs text-stone-400 mt-1">Crudi, scogli e pescato del giorno</p>
+              </div>
+            </div>
+            <i class="fa-solid fa-arrow-down-long text-stone-600 group-hover:text-gold-400 transition-colors text-sm ml-2"></i>
+          </div>
+        </div>
+
+        <!-- 2. Pizzeria a Cena -->
+        <div onclick="navigateMenuCategory('pizza')" class="card-3d reveal-3d p-6 rounded-2xl bg-dark-950/80 border border-stone-800/80 hover:border-gold-500/70 shadow-lg cursor-pointer group">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-400 text-2xl flex-shrink-0 group-hover:bg-gold-500 group-hover:text-dark-950 transition-colors">
+                <i class="fa-solid fa-pizza-slice"></i>
+              </div>
+              <div>
+                <h4 class="text-white font-semibold text-base font-serif group-hover:text-gold-400 transition-colors">Pizzeria a Cena</h4>
+                <p class="text-xs text-stone-400 mt-1">Impasti integrali a lunga lievitazione</p>
+              </div>
+            </div>
+            <i class="fa-solid fa-arrow-down-long text-stone-600 group-hover:text-gold-400 transition-colors text-sm ml-2"></i>
+          </div>
+        </div>
+
+        <!-- 3. 166 Etichette -->
+        <div onclick="scrollToSection('cantina')" class="card-3d reveal-3d p-6 rounded-2xl bg-dark-950/80 border border-stone-800/80 hover:border-gold-500/70 shadow-lg cursor-pointer group">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-400 text-2xl flex-shrink-0 group-hover:bg-gold-500 group-hover:text-dark-950 transition-colors">
+                <i class="fa-solid fa-wine-bottle"></i>
+              </div>
+              <div>
+                <h4 class="text-white font-semibold text-base font-serif group-hover:text-gold-400 transition-colors">166 Etichette</h4>
+                <p class="text-xs text-stone-400 mt-1">Cantina con selezione DOC e DOCG</p>
+              </div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-stone-600 group-hover:text-gold-400 transition-colors text-sm ml-2"></i>
+          </div>
+        </div>
+
+        <!-- 4. Sale per Eventi -->
+        <div onclick="scrollToSection('eventi')" class="card-3d reveal-3d p-6 rounded-2xl bg-dark-950/80 border border-stone-800/80 hover:border-gold-500/70 shadow-lg cursor-pointer group">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-400 text-2xl flex-shrink-0 group-hover:bg-gold-500 group-hover:text-dark-950 transition-colors">
+                <i class="fa-solid fa-champagne-glasses"></i>
+              </div>
+              <div>
+                <h4 class="text-white font-semibold text-base font-serif group-hover:text-gold-400 transition-colors">Sale per Eventi</h4>
+                <p class="text-xs text-stone-400 mt-1">Spazi per cerimonie e feste private</p>
+              </div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-stone-600 group-hover:text-gold-400 transition-colors text-sm ml-2"></i>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- About Us (Chi Siamo) -->
+  <section id="chi-siamo" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      
+      <div class="relative reveal-3d">
+        <div class="rounded-3xl overflow-hidden border border-stone-800 shadow-2xl">
+          <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80" alt="Sala Ristorante Bersagliere" class="w-full h-[480px] object-cover">
+        </div>
+        <div class="absolute -bottom-8 -left-8 bg-dark-900 border border-gold-500/30 p-6 rounded-2xl shadow-2xl max-w-xs hidden sm:block backdrop-blur-md">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl font-serif font-black text-gold-400">166+</span>
+            <span class="text-xs font-semibold text-white uppercase tracking-wider">Vini in Cantina</span>
+          </div>
+          <p class="text-xs text-stone-400">Accostamenti enologici curati per valorizzare al massimo ogni singola portata.</p>
+        </div>
+      </div>
+
+      <div class="space-y-6 reveal-3d">
+        <div class="inline-block text-xs font-bold uppercase tracking-widest text-gold-500">Chi Siamo</div>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white leading-tight">
+          Il Ristorante Bersagliere a Casalecchio di Reno
+        </h2>
+        <p class="text-stone-300 leading-relaxed font-light">
+          Situato a pochi minuti da Bologna, il <strong class="text-white font-medium">Ristorante Bersagliere</strong> è la meta prediletta per chi ricerca sapori autentici di mare e la grande tradizione gastronomica italiana.
+        </p>
+        <p class="text-stone-400 text-sm leading-relaxed">
+          Tutto il nostro menù è imperniato sulla qualità indiscussa delle materie prime: pescato di giornata, tagli di carne selezionati e una pizzeria serale che unisce fragranza partenopea e impasti digeribili a lenta maturazione.
+        </p>
+        
+        <div class="pt-4 grid grid-cols-2 gap-6 border-t border-stone-800">
+          <div>
+            <span class="font-serif text-2xl font-bold text-white block">Freschezza</span>
+            <span class="text-xs text-stone-400">Arrivi ittici giornalieri certificati</span>
+          </div>
+          <div>
+            <span class="font-serif text-2xl font-bold text-white block">Accoglienza</span>
+            <span class="text-xs text-stone-400">Ospitalità sincera in ambiente curato</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Menu Section -->
+  <section id="menu" class="py-24 bg-dark-900 border-t border-stone-800 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-14 reveal-3d">
+        <span class="text-gold-500 font-bold text-xs uppercase tracking-widest">Le Nostre Proposte Gastronomiche</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white mt-2 mb-4">Il Menù del Bersagliere</h2>
+        <p class="text-stone-400 text-sm">Tocca un piatto per aprire la galleria fotografica, gli ingredienti e prenotare direttamente il tuo tavolo.</p>
+
+        <!-- Category Selector -->
+        <div class="flex flex-wrap justify-center gap-2 mt-8">
+          <button onclick="filterMenu('tutti')" class="menu-tab px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 bg-gold-500 text-dark-950 font-bold" data-cat="tutti">
+            Tutte le Proposte
+          </button>
+          <button onclick="filterMenu('pesce')" class="menu-tab px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 bg-dark-850 hover:bg-stone-800 text-stone-300" data-cat="pesce">
+            Specialità di Pesce
+          </button>
+          <button onclick="filterMenu('carne')" class="menu-tab px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 bg-dark-850 hover:bg-stone-800 text-stone-300" data-cat="carne">
+            Piatti di Carne
+          </button>
+          <button onclick="filterMenu('pizza')" class="menu-tab px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 bg-dark-850 hover:bg-stone-800 text-stone-300" data-cat="pizza">
+            Pizzeria a Cena
+          </button>
+          <button onclick="filterMenu('dolci')" class="menu-tab px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 bg-dark-850 hover:bg-stone-800 text-stone-300" data-cat="dolci">
+            Dolci della Casa
+          </button>
+        </div>
+      </div>
+
+      <!-- Menu Grid with 3D Reveal -->
+      <div id="menu-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        <!-- Piatto 1: Gran Crudo -->
+        <div onclick="openDishModal('crudo')" class="menu-item pesce card-3d reveal-3d bg-dark-950 rounded-2xl overflow-hidden border border-stone-800/80 hover:border-gold-500/60 cursor-pointer group shadow-xl">
+          <div class="h-56 overflow-hidden relative pointer-events-none">
+            <img src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80" alt="Gran Crudo di Mare" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <span class="absolute top-3 left-3 bg-gold-500 text-dark-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md">Specialità Mare</span>
+            <div class="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-4 py-2 rounded-full bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-images"></i> Galleria & Dettagli
+              </span>
+            </div>
+          </div>
+          <div class="p-6 pointer-events-none">
+            <div class="flex justify-between items-baseline mb-2">
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Gran Crudo di Mare</h3>
+              <span class="text-gold-400 font-semibold text-sm">€ 28,00</span>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed mb-4">Tartare di tonno rosso, salmone marinato, scampi dell'Adriatico e gamberi rossi con cristalli di sale Maldon.</p>
+            <div class="flex items-center gap-3 text-[11px] text-gold-500 font-medium pt-3 border-t border-stone-800/60">
+              <span><i class="fa-solid fa-wine-glass mr-1"></i> Franciacorta Satèn DOCG</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Piatto 2: Spaghettoni allo Scoglio -->
+        <div onclick="openDishModal('scoglio')" class="menu-item pesce card-3d reveal-3d bg-dark-950 rounded-2xl overflow-hidden border border-stone-800/80 hover:border-gold-500/60 cursor-pointer group shadow-xl">
+          <div class="h-56 overflow-hidden relative pointer-events-none">
+            <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80" alt="Spaghettoni allo Scoglio" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <span class="absolute top-3 left-3 bg-stone-800 text-gold-400 border border-gold-500/30 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Primo Piatto</span>
+            <div class="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-4 py-2 rounded-full bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-images"></i> Galleria & Dettagli
+              </span>
+            </div>
+          </div>
+          <div class="p-6 pointer-events-none">
+            <div class="flex justify-between items-baseline mb-2">
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Spaghettoni allo Scoglio</h3>
+              <span class="text-gold-400 font-semibold text-sm">€ 18,00</span>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed mb-4">Pasta trafilata al bronzo, vongole veraci, cozze, calamari e gamberi con pomodorini vesuviani.</p>
+            <div class="flex items-center gap-3 text-[11px] text-gold-500 font-medium pt-3 border-t border-stone-800/60">
+              <span><i class="fa-solid fa-wine-glass mr-1"></i> Vermentino di Gallura DOCG</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Piatto 3: Rombo al Forno con Patate -->
+        <div onclick="openDishModal('rombo')" class="menu-item pesce card-3d reveal-3d bg-dark-950 rounded-2xl overflow-hidden border border-stone-800/80 hover:border-gold-500/60 cursor-pointer group shadow-xl">
+          <div class="h-56 overflow-hidden relative pointer-events-none">
+            <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80" alt="Rombo al Forno con Patate" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <span class="absolute top-3 left-3 bg-stone-800 text-gold-400 border border-gold-500/30 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Secondo Mare</span>
+            <div class="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-4 py-2 rounded-full bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-images"></i> Galleria & Dettagli
+              </span>
+            </div>
+          </div>
+          <div class="p-6 pointer-events-none">
+            <div class="flex justify-between items-baseline mb-2">
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Rombo Chiodato al Forno</h3>
+              <span class="text-gold-400 font-semibold text-sm">€ 26,00</span>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed mb-4">Cotto al forno con patate a lamelle croccanti, pomodorini confit, olive taggiasche e capperi di Pantelleria.</p>
+            <div class="flex items-center gap-3 text-[11px] text-gold-500 font-medium pt-3 border-t border-stone-800/60">
+              <span><i class="fa-solid fa-wine-glass mr-1"></i> Fiano di Avellino DOCG</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Piatto 4: Tagliata di Manzo al Rosmarino -->
+        <div onclick="openDishModal('tagliata')" class="menu-item carne card-3d reveal-3d bg-dark-950 rounded-2xl overflow-hidden border border-stone-800/80 hover:border-gold-500/60 cursor-pointer group shadow-xl">
+          <div class="h-56 overflow-hidden relative pointer-events-none">
+            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80" alt="Tagliata di Manzo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <span class="absolute top-3 left-3 bg-stone-800 text-gold-400 border border-gold-500/30 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Carne Selezionata</span>
+            <div class="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-4 py-2 rounded-full bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-images"></i> Galleria & Dettagli
+              </span>
+            </div>
+          </div>
+          <div class="p-6 pointer-events-none">
+            <div class="flex justify-between items-baseline mb-2">
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Tagliata al Rosmarino & Grana</h3>
+              <span class="text-gold-400 font-semibold text-sm">€ 20,00</span>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed mb-4">Controfiletto di manzo cotto su brace ardente, servito con rucola fresca e scaglie di Parmigiano Reggiano 24 mesi.</p>
+            <div class="flex items-center gap-3 text-[11px] text-gold-500 font-medium pt-3 border-t border-stone-800/60">
+              <span><i class="fa-solid fa-wine-glass mr-1"></i> Chianti Classico Riserva DOCG</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Piatto 5: Stinco di Maiale alla Birra -->
+        <div onclick="openDishModal('stinco')" class="menu-item carne card-3d reveal-3d bg-dark-950 rounded-2xl overflow-hidden border border-stone-800/80 hover:border-gold-500/60 cursor-pointer group shadow-xl">
+          <div class="h-56 overflow-hidden relative pointer-events-none">
+            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80" alt="Stinco alla Birra" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <span class="absolute top-3 left-3 bg-stone-800 text-gold-400 border border-gold-500/30 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Tradizione Terra</span>
+            <div class="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-4 py-2 rounded-full bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-images"></i> Galleria & Dettagli
+              </span>
+            </div>
+          </div>
+          <div class="p-6 pointer-events-none">
+            <div class="flex justify-between items-baseline mb-2">
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Stinco alla Birra Artigianale</h3>
+              <span class="text-gold-400 font-semibold text-sm">€ 17,00</span>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed mb-4">Cottura lenta di oltre 6 ore al forno, glassato con riduzione alla birra doppio malto e purea di patate al burro.</p>
+            <div class="flex items-center gap-3 text-[11px] text-gold-500 font-medium pt-3 border-t border-stone-800/60">
+              <span><i class="fa-solid fa-wine-glass mr-1"></i> Sangiovese di Romagna Superiore</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Piatto 6: Bersagliere Gourmet Pizza -->
+        <div onclick="openDishModal('pizza-gourmet')" class="menu-item pizza card-3d reveal-3d bg-dark-950 rounded-2xl overflow-hidden border border-stone-800/80 hover:border-gold-500/60 cursor-pointer group shadow-xl">
+          <div class="h-56 overflow-hidden relative pointer-events-none">
+            <img src="https://images.unsplash.com/photo-1604382355076-af4b0eb60143?auto=format&fit=crop&w=600&q=80" alt="Pizza Bersagliere Gourmet" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <span class="absolute top-3 left-3 bg-gold-500 text-dark-950 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md">Pizza Gourmet</span>
+            <div class="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-4 py-2 rounded-full bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-images"></i> Galleria & Dettagli
+              </span>
+            </div>
+          </div>
+          <div class="p-6 pointer-events-none">
+            <div class="flex justify-between items-baseline mb-2">
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Pizza Bersagliere Gourmet</h3>
+              <span class="text-gold-400 font-semibold text-sm">€ 14,00</span>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed mb-4">Disponibile con impasto integrale a lenta lievitazione: cuore di burrata pugliese, gambero rosso marinato e zeste di lime.</p>
+            <div class="flex items-center gap-3 text-[11px] text-gold-500 font-medium pt-3 border-t border-stone-800/60">
+              <span><i class="fa-solid fa-wine-glass mr-1"></i> Prosecco Superiore di Valdobbiadene DOCG</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Piatto 7: Tiramisù Tradizionale -->
+        <div onclick="openDishModal('tiramisu')" class="menu-item dolci card-3d reveal-3d bg-dark-950 rounded-2xl overflow-hidden border border-stone-800/80 hover:border-gold-500/60 cursor-pointer group shadow-xl">
+          <div class="h-56 overflow-hidden relative pointer-events-none">
+            <img src="https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=600&q=80" alt="Tiramisù Tradizionale" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <span class="absolute top-3 left-3 bg-stone-800 text-gold-400 border border-gold-500/30 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Dessert Fatto in Casa</span>
+            <div class="absolute inset-0 bg-dark-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="px-4 py-2 rounded-full bg-gold-500 text-dark-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-images"></i> Galleria & Dettagli
+              </span>
+            </div>
+          </div>
+          <div class="p-6 pointer-events-none">
+            <div class="flex justify-between items-baseline mb-2">
+              <h3 class="font-serif text-lg font-bold text-white group-hover:text-gold-400 transition-colors">Tiramisù Artigianale Bersagliere</h3>
+              <span class="text-gold-400 font-semibold text-sm">€ 7,00</span>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed mb-4">Savoiardi artigianali imbevuti di caffè espresso arabica, crema soffice al mascarpone fresco e cacao amaro olandese.</p>
+            <div class="flex items-center gap-3 text-[11px] text-gold-500 font-medium pt-3 border-t border-stone-800/60">
+              <span><i class="fa-solid fa-wine-glass mr-1"></i> Passito di Pantelleria DOC</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- MODAL POPUP MINIMAL (PULSANTE CHIUSURA UNICO + SLIDER 3D)      -->
+  <!-- ============================================================== -->
+  <div id="dish-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/95 p-3 sm:p-4 opacity-0 pointer-events-none">
+    
+    <!-- Modal Card -->
+    <div id="modal-box" class="bg-[#101014] border border-stone-800 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl relative max-h-[88vh] sm:max-h-[90vh] flex flex-col pointer-events-auto">
+      
+      <!-- Top Gallery Carousel (Altezza compatta h-44 / h-56) -->
+      <div id="slider-wrapper" class="relative h-44 sm:h-56 w-full flex-shrink-0 overflow-hidden select-none bg-black perspective-container">
+        
+        <!-- Sliding Images Track with 3D Depth -->
+        <div id="slider-track" class="flex w-full h-full">
+          <!-- Popolato dinamicamente con slide 3D da JS -->
+        </div>
+
+        <!-- Solid Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-[#101014] via-[#101014]/25 to-transparent pointer-events-none"></div>
+
+        <!-- Top Controls Bar: Solo il pulsante di chiusura (senza scritte o numeri) -->
+        <div class="absolute top-3 right-3 z-30 pointer-events-auto">
+          <button onclick="closeDishModal()" aria-label="Chiudi scheda" class="w-9 h-9 rounded-full bg-black/90 border border-stone-700 text-stone-300 active:bg-gold-500 active:text-dark-950 flex items-center justify-center text-sm transition-all shadow-lg active:scale-95">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Left / Right Navigation Arrow Buttons -->
+        <button id="slider-prev-btn" onclick="prevSlide(event)" aria-label="Foto precedente" class="absolute left-2.5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/80 active:bg-gold-500 active:text-dark-950 border border-stone-700 text-white flex items-center justify-center transition-all shadow-xl active:scale-95 pointer-events-auto">
+          <i class="fa-solid fa-chevron-left text-xs pointer-events-none"></i>
+        </button>
+        
+        <button id="slider-next-btn" onclick="nextSlide(event)" aria-label="Foto successiva" class="absolute right-2.5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/80 active:bg-gold-500 active:text-dark-950 border border-stone-700 text-white flex items-center justify-center transition-all shadow-xl active:scale-95 pointer-events-auto">
+          <i class="fa-solid fa-chevron-right text-xs pointer-events-none"></i>
+        </button>
+
+        <!-- Bottom Header Text & Gallery Dots -->
+        <div class="absolute bottom-2 left-4 right-4 z-20 flex flex-col gap-1 pointer-events-none">
+          <div class="flex items-end justify-between">
+            <div class="pr-6">
+              <span id="m-badge" class="px-2 py-0.5 rounded bg-gold-500 text-dark-950 text-[9px] font-bold uppercase tracking-wider inline-block"></span>
+              <h2 id="m-title" class="font-serif text-lg sm:text-2xl font-bold text-white mt-0.5 drop-shadow-md leading-tight"></h2>
+            </div>
+            <span id="m-price" class="text-gold-400 font-serif text-lg sm:text-xl font-bold drop-shadow-md flex-shrink-0"></span>
+          </div>
+
+          <!-- Carousel Dots Navigation -->
+          <div id="slider-dots" class="flex items-center justify-center gap-1.5 pt-0.5 pointer-events-auto"></div>
+        </div>
+
+      </div>
+
+      <!-- Modal Content Body -->
+      <div id="modal-scroll-body" class="p-4 sm:p-5 overflow-y-auto space-y-3 text-xs sm:text-sm text-stone-300">
+        
+        <!-- Descrizione Gastronomica -->
+        <div>
+          <h4 class="text-[11px] font-bold uppercase tracking-wider text-gold-500 mb-0.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-utensils text-[10px]"></i> Descrizione & Preparazione
+          </h4>
+          <p id="m-desc" class="text-stone-300 text-xs leading-relaxed font-light"></p>
+        </div>
+
+        <!-- Ingredienti Selezionati -->
+        <div class="bg-dark-950 p-3 rounded-xl border border-stone-800">
+          <h4 class="text-[10px] font-bold uppercase tracking-wider text-white mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-leaf text-gold-500 text-[10px]"></i> Ingredienti di Prima Scelta
+          </h4>
+          <p id="m-ingredients" class="text-[11px] text-stone-400 leading-normal"></p>
+        </div>
+
+        <!-- Abbinamento Vino Cantina 166 -->
+        <div class="bg-gold-500/10 p-3 rounded-xl border border-gold-500/30">
+          <h4 class="text-[10px] font-bold uppercase tracking-wider text-gold-400 mb-0.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-wine-glass text-[10px]"></i> Abbinamento Cantina (166 Etichette)
+          </h4>
+          <p id="m-wine" class="text-[11px] text-stone-300 leading-normal"></p>
+        </div>
+
+        <!-- Note Dietetiche & Allergeni -->
+        <div>
+          <h4 class="text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1.5">Note & Allergeni:</h4>
+          <div id="m-tags" class="flex flex-wrap gap-1.5 text-[11px]"></div>
+        </div>
+
+      </div>
+
+      <!-- Sticky Action Footer: Sempre visibile subito -->
+      <div class="p-3 sm:p-4 bg-[#0a0a0d] border-t border-stone-800 shrink-0 flex items-center justify-between gap-3">
+        <div class="hidden sm:block text-[11px] text-stone-400 leading-tight">
+          <span class="block text-white font-medium">Vuoi assaggiare questo piatto?</span>
+          Prenota il tuo tavolo in pochi secondi.
+        </div>
+        <a href="#prenota" onclick="closeDishModal()" class="w-full sm:w-auto px-6 py-3 rounded-full bg-gold-500 hover:bg-gold-400 text-dark-950 font-bold uppercase text-xs tracking-wider transition-all text-center shadow-lg active:scale-95 flex-shrink-0">
+          Prenota un Tavolo per Questo Piatto
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Wine Cellar Section -->
+  <section id="cantina" class="py-24 relative overflow-hidden bg-dark-950 border-t border-stone-800 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        
+        <div class="space-y-6 reveal-3d">
+          <div class="inline-flex items-center gap-2 text-gold-500 font-bold text-xs uppercase tracking-widest">
+            <i class="fa-solid fa-wine-glass text-xs"></i> Selezione Esclusiva
+          </div>
+          <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white leading-tight">
+            Oltre 166 Etichette Selezionate
+          </h2>
+          <p class="text-stone-300 font-light leading-relaxed">
+            Una carta dei vini meticolosamente curata per esaltare il sapore del pesce fresco e delle carni pregiate. Dalle migliori bollicine di Franciacorta e Champagne, ai bianchi strutturati del Friuli e dell'Alto Adige, fino ai grandi rossi toscani ed emiliani.
+          </p>
+          <p class="text-stone-400 text-sm leading-relaxed">
+            Il nostro personale di sala è sempre lieto di consigliarvi l’abbinamento ideale per ogni portata e trasformare ogni calice in un viaggio nel gusto.
+          </p>
+
+          <div class="grid grid-cols-3 gap-4 pt-2">
+            <div class="p-4 rounded-xl bg-dark-900 border border-stone-800 text-center card-3d">
+              <span class="font-serif text-2xl font-bold text-gold-400 block">Bianchi</span>
+              <span class="text-[11px] text-stone-400">Freschi & Minerali</span>
+            </div>
+            <div class="p-4 rounded-xl bg-dark-900 border border-stone-800 text-center card-3d">
+              <span class="font-serif text-2xl font-bold text-gold-400 block">Rossi</span>
+              <span class="text-[11px] text-stone-400">Strutturati</span>
+            </div>
+            <div class="p-4 rounded-xl bg-dark-900 border border-stone-800 text-center card-3d">
+              <span class="font-serif text-2xl font-bold text-gold-400 block">Bollicine</span>
+              <span class="text-[11px] text-stone-400">Metodo Classico</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative reveal-3d">
+          <div class="rounded-3xl overflow-hidden border border-gold-500/30 shadow-2xl relative group">
+            <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=80" alt="Cantina Vini Ristorante Bersagliere" class="w-full h-[480px] object-cover group-hover:scale-105 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/20 to-transparent"></div>
+            
+            <div class="absolute bottom-6 left-6 right-6 bg-dark-950/90 p-5 rounded-2xl border border-stone-800 flex items-center justify-between">
+              <div>
+                <p class="font-serif text-lg font-bold text-white">Carta dei Vini Pregiati</p>
+                <p class="text-xs text-gold-400">166 Etichette Nazionali & Internazionali</p>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 text-lg">
+                <i class="fa-solid fa-wine-bottle"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Events & Ceremonies -->
+  <section id="eventi" class="py-24 bg-dark-900 border-t border-stone-800 scroll-mt-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal-3d">
+      <span class="text-gold-500 font-bold text-xs uppercase tracking-widest">Spazi & Ricevimenti</span>
+      <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white mt-2 mb-4">Location per Cerimonie ed Eventi</h2>
+      <p class="text-stone-300 font-light leading-relaxed mb-8">
+        Organizziamo con la massima dedizione pranzi di lavoro, anniversari, feste di laurea, cresime e cene aziendali a Casalecchio di Reno con menù concordati e servizio impeccabile.
+      </p>
+      <a href="#prenota" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-dark-850 hover:bg-stone-800 text-gold-400 border border-gold-500/40 text-xs font-semibold tracking-wider uppercase transition-all duration-300">
+        <i class="fa-solid fa-envelope-open-text text-sm"></i>
+        Richiedi un Preventivo Dedicato
+      </a>
+    </div>
+  </section>
+
+  <!-- Online Reservation Form -->
+  <section id="prenota" class="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
+    <div class="bg-dark-900 rounded-3xl p-8 sm:p-12 border border-stone-800 shadow-2xl relative overflow-hidden reveal-3d">
+      
+      <div class="text-center mb-10">
+        <span class="text-gold-500 font-bold text-xs uppercase tracking-widest">Prenotazione Diretta</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white mt-1">Prenota il Tuo Tavolo</h2>
+        <p class="text-stone-400 text-xs mt-2">Compila i dettagli; il nostro staff confermerà prontamente la disponibilità.</p>
+      </div>
+
+      <form id="reservation-form" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">Nome e Cognome *</label>
+            <input type="text" required placeholder="Es. Marco Rossi" class="w-full px-4 py-3 rounded-xl bg-dark-950 border border-stone-800 text-white placeholder-stone-600 focus:outline-none focus:border-gold-500 transition-colors text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">Numero di Telefono *</label>
+            <input type="tel" required placeholder="Es. 333 1234567" class="w-full px-4 py-3 rounded-xl bg-dark-950 border border-stone-800 text-white placeholder-stone-600 focus:outline-none focus:border-gold-500 transition-colors text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">Persone *</label>
+            <select class="w-full px-4 py-3 rounded-xl bg-dark-950 border border-stone-800 text-white focus:outline-none focus:border-gold-500 transition-colors text-sm">
+              <option value="1">1 Persona</option>
+              <option value="2" selected>2 Persone</option>
+              <option value="3">3 Persone</option>
+              <option value="4">4 Persone</option>
+              <option value="5">5 Persone</option>
+              <option value="6">6 Persone</option>
+              <option value="more">Oltre 6 persone</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">Data *</label>
+            <input type="date" required class="w-full px-4 py-3 rounded-xl bg-dark-950 border border-stone-800 text-white focus:outline-none focus:border-gold-500 transition-colors text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">Servizio & Orario *</label>
+            <select class="w-full px-4 py-3 rounded-xl bg-dark-950 border border-stone-800 text-white focus:outline-none focus:border-gold-500 transition-colors text-sm">
+              <optgroup label="Pranzo">
+                <option value="12:00">12:00</option>
+                <option value="12:30">12:30</option>
+                <option value="13:00">13:00</option>
+                <option value="13:30">13:30</option>
+              </optgroup>
+              <optgroup label="Cena">
+                <option value="19:30">19:30</option>
+                <option value="20:00" selected>20:00</option>
+                <option value="20:30">20:30</option>
+                <option value="21:00">21:00</option>
+                <option value="21:30">21:30</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">Note o Richieste Particolari (Opzionale)</label>
+          <textarea rows="3" placeholder="Preferenza tavolo, piatto preferito, allergie, seggiolone bimbi..." class="w-full px-4 py-3 rounded-xl bg-dark-950 border border-stone-800 text-white placeholder-stone-600 focus:outline-none focus:border-gold-500 transition-colors text-sm"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-4 rounded-xl bg-gold-500 hover:bg-gold-400 text-dark-950 font-bold uppercase text-xs tracking-wider transition-all duration-300 shadow-xl shadow-gold-500/20 active:scale-95">
+          Invia Richiesta di Prenotazione
+        </button>
+      </form>
+
+      <div id="booking-msg" class="hidden mt-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-center text-sm font-medium">
+        <i class="fa-solid fa-circle-check mr-2"></i> Richiesta inviata con successo! Verrai contattato a breve per la conferma.
+      </div>
+    </div>
+  </section>
+
+  <!-- Contacts & Map -->
+  <section id="contatti" class="py-24 bg-dark-900 border-t border-stone-800 scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+        
+        <div class="reveal-3d">
+          <span class="text-gold-500 font-bold text-xs uppercase tracking-widest">Informazioni Ufficiali</span>
+          <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white mt-1 mb-8">Dove Trovarci</h2>
+
+          <div class="space-y-6">
+            
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-dark-950 border border-stone-800 flex items-center justify-center text-gold-400 text-lg flex-shrink-0">
+                <i class="fa-solid fa-location-dot"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-white uppercase tracking-wider">Indirizzo</h4>
+                <p class="text-stone-300 text-sm mt-1">Via Guglielmo Marconi, 94 – 40033 Casalecchio di Reno (BO), Italia</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-dark-950 border border-stone-800 flex items-center justify-center text-gold-400 text-lg flex-shrink-0">
+                <i class="fa-solid fa-phone"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-white uppercase tracking-wider">Telefono e WhatsApp</h4>
+                <a href="tel:3332078906" class="text-gold-400 text-base font-medium mt-1 inline-block hover:underline">
+                  333 2078906
+                </a>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-dark-950 border border-stone-800 flex items-center justify-center text-gold-400 text-lg flex-shrink-0">
+                <i class="fa-solid fa-envelope"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-white uppercase tracking-wider">Email Amministrazione</h4>
+                <a href="mailto:amministrazione@ristorantebersagliere.it" class="text-stone-300 text-sm mt-1 inline-block hover:text-gold-400 transition-colors">
+                  amministrazione@ristorantebersagliere.it
+                </a>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-dark-950 border border-stone-800 flex items-center justify-center text-gold-400 text-lg flex-shrink-0">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-white uppercase tracking-wider">Orari di Apertura</h4>
+                <div class="text-stone-300 text-xs space-y-1 mt-1">
+                  <p><strong class="text-white">Lunedì – Sabato:</strong> 12:00 – 14:00 | 19:00 – 23:00</p>
+                  <p><strong class="text-white">Domenica:</strong> 12:00 – 14:30 | 19:00 – 23:00</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="mt-8">
+            <a href="https://maps.app.goo.gl/KWqDwd66oCwzUhWe8" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-dark-950 hover:bg-stone-800 text-white font-medium text-xs tracking-wider uppercase border border-stone-700 transition">
+              <i class="fa-brands fa-google text-gold-400"></i>
+              Apri in Google Maps
+            </a>
+          </div>
+        </div>
+
+        <div class="h-[440px] rounded-3xl overflow-hidden border border-stone-800 bg-dark-950 relative shadow-2xl reveal-3d">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2847.669818816828!2d11.275528876694386!3d44.47990479860641!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x477fd267a544ca9f%3A0xe54d89faebf66bb6!2sVia%20Guglielmo%20Marconi%2C%2094%2C%2040033%20Casalecchio%20di%20Reno%20BO%2C%20Italy!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit" 
+            class="w-full h-full border-0 filter grayscale invert contrast-125 opacity-80 hover:opacity-100 transition-opacity duration-300" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-10 bg-dark-950 border-t border-stone-900 text-stone-500 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div>
+        <p class="text-stone-300 font-serif font-bold text-sm">Ristorante Bersagliere</p>
+        <p class="text-stone-500 text-[11px] mt-0.5">ARGAFOOD S.R.L. | Via Della Zecca, 2, 40121 Bologna (BO) - P.IVA / C.F.</p>
+        <p class="mt-1">© Tutti i diritti riservati.</p>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <a href="https://www.ristorantebersagliere.it/informativa-privacy/" target="_blank" class="hover:text-gold-400 transition-colors">Privacy Policy</a>
+        <a href="https://www.ristorantebersagliere.it/cookie-policy-ue/" target="_blank" class="hover:text-gold-400 transition-colors">Cookie Policy</a>
+      </div>
+
+      <div class="flex items-center gap-4 text-base text-stone-400">
+        <a href="https://instagram.com" target="_blank" aria-label="Instagram" class="w-9 h-9 rounded-full bg-dark-900 border border-stone-800 flex items-center justify-center hover:text-gold-400 transition"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://facebook.com" target="_blank" aria-label="Facebook" class="w-9 h-9 rounded-full bg-dark-900 border border-stone-800 flex items-center justify-center hover:text-gold-400 transition"><i class="fa-brands fa-facebook-f"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================== -->
+  <!-- JAVASCRIPT: LOGICHE & MOTORE 3D                -->
+  <!-- ============================================== -->
+  <script>
+    /* ----------------------------------------------------
+       1. INTERSECTION OBSERVER PER L'ENTRATA 3D DEGLI ELEMENTI
+       ---------------------------------------------------- */
+    (function init3DScrollReveal() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.reveal-3d').forEach(el => observer.observe(el));
+    })();
+
+    /* ----------------------------------------------------
+       2. NAVIGAZIONE INTELIGENTE DAI 4 BADGES
+       ---------------------------------------------------- */
+    function navigateMenuCategory(category) {
+      filterMenu(category);
+      const menuSection = document.getElementById('menu');
+      if (menuSection) {
+        menuSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function scrollToSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    /* ----------------------------------------------------
+       3. DATABASE DETTAGLIATO PIATTI
+       ---------------------------------------------------- */
+    const dishesData = {
+      'crudo': {
+        title: 'Gran Crudo di Mare del Bersagliere',
+        badge: 'Specialità Crudità',
+        price: '€ 28,00',
+        images: [
+          'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?auto=format&fit=crop&w=1200&q=80'
+        ],
+        desc: 'Un trionfo di mare freschissimo abbattuto a norma di legge. Composto da tartare di tonno rosso pinna gialla marinato agli agrumi, carpaccio di salmone norvegese, scampi freschi del mare Adriatico e gamberi rossi di Sicilia con sale di Maldon e gocce di olio evo pugliese.',
+        ingredients: 'Tonno rosso (Thunnus albacares), Salmone fresco, Scampi adriatici, Gamberi rossi, Sale Maldon, Olio EVO monocultivar, lime e pepe rosa.',
+        wine: 'Franciacorta Satèn Brut DOCG oppure Vermentino di Bolgheri DOC: freschi e minerali per esaltare la dolcezza del crostaceo.',
+        tags: ['Pesce Crudo Certificato', 'Senza Glutine', 'Allergeni: Crostacei, Pesce']
+      },
+      'scoglio': {
+        title: 'Spaghettoni allo Scoglio Tradizionale',
+        badge: 'Primo Piatto Signature',
+        price: '€ 18,00',
+        images: [
+          'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1621996346565-e3d5d6281696?auto=format&fit=crop&w=1200&q=80'
+        ],
+        desc: 'Spaghettoni trafilati al bronzo con superficie ruvida. Spadellati al momento con vongole veraci fresche, cozze, calamari nostrani e gamberi sfumati al vino bianco secco, con pomodorini datterini del Vesuvio e prezzemolo fresco.',
+        ingredients: 'Pasta di grano duro trafilata al bronzo, Vongole veraci, Cozze, Calamari, Gamberi, Pomodorini datterini, Aglio di Voghiera, Vino bianco DOC.',
+        wine: 'Fiano di Avellino DOCG o Lugana DOC: sapidi e vibranti per armonizzare la mineralità marina.',
+        tags: ['Trafilata al Bronzo', 'Frutti di Mare Freschi', 'Allergeni: Glutine, Molluschi, Crostacei']
+      },
+      'rombo': {
+        title: 'Rombo Chiodato al Forno con Patate',
+        badge: 'Secondo Piatto Pescato',
+        price: '€ 26,00',
+        images: [
+          'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1535400255456-984241443b29?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80'
+        ],
+        desc: 'Trancio di rombo chiodato dai mercati ittici di fiducia, cotto dolcemente al forno sopra un letto di patate a lamelle croccanti al timo, pomodorini confit, olive taggiasche liguri e capperi di Pantelleria.',
+        ingredients: 'Rombo fresco, Patate di Bologna DOP, Pomodorini confit, Olive taggiasche, Capperi di Pantelleria, Timo fresco, Olio EVO toscano.',
+        wine: 'Greco di Tufo DOCG o Roero Arneis DOCG: la loro rotondità bilancia le note delicate della polpa del rombo.',
+        tags: ['Pescato del Giorno', 'Naturalmente Senza Glutine', 'Allergeni: Pesce']
+      },
+      'tagliata': {
+        title: 'Tagliata di Manzo al Rosmarino & Grana',
+        badge: 'Carni Pregiate di Terra',
+        price: '€ 20,00',
+        images: [
+          'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=1200&q=80'
+        ],
+        desc: 'Controfiletto bovino da allevamenti italiani controllati, scottato rapidamente su griglia a legna. Servito scaloppato su letto di rucola selvatica fresca, con scaglie di Parmigiano Reggiano DOP 24 mesi e Aceto Balsamico di Modena IGP.',
+        ingredients: 'Lombata di manzo italiano, Olio al rosmarino, Rucola, Parmigiano Reggiano DOP 24 mesi, Aceto Balsamico di Modena IGP.',
+        wine: 'Chianti Classico Riserva DOCG oppure Rosso di Montalcino DOC: tannino nobile e persistenza ideale.',
+        tags: ['Cottura alla Brace', 'Carni Certificate', 'Allergeni: Lattosio']
+      },
+      'stinco': {
+        title: 'Stinco di Maiale alla Birra Artigianale',
+        badge: 'Specialità Tipica',
+        price: '€ 17,00',
+        images: [
+          'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=1200&q=80'
+        ],
+        desc: 'Stinco di suino cotto a bassa temperatura per oltre 6 ore con sfumatura di birra artigianale doppio malto, ginepro e alloro. Servito con il suo fondo bruno ristretto e patate arrosto.',
+        ingredients: 'Stinco di maiale, Birra artigianale ambrata, Ginepro, Alloro, Carote, Sedano, Cipolla, Patate arrosto.',
+        wine: 'Sangiovese di Romagna Superiore DOC o birra artigianale doppio malto.',
+        tags: ['Cottura Lenta 6h', 'Gusto Tradizionale', 'Allergeni: Glutine, Sedano, Lattosio']
+      },
+      'pizza-gourmet': {
+        title: 'Pizza Bersagliere Gourmet (Impasto Integrale)',
+        badge: 'Pizzeria Artigianale Serale',
+        price: '€ 14,00',
+        images: [
+          'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80'
+        ],
+        desc: 'Impasto a scelta classico o integrale macinato a pietra con oltre 48 ore di maturazione. Farcita a crudo con burrata fresca di Andria, gambero rosso marinato all’olio evo e scorze d’arancia con basilico fresco.',
+        ingredients: 'Farina tipo 1 e integrale, Burrata di Andria IGP, Gambero rosso marinato, Pomodoro giallo, Zeste di agrumi, Basilico fresco.',
+        wine: 'Franciacorta Brut Rosé o Birra Blanche artigianale agrumata.',
+        tags: ['Lievitazione 48 Ore', 'Gourmet', 'Allergeni: Glutine, Lattosio, Crostacei']
+      },
+      'tiramisu': {
+        title: 'Tiramisù Tradizionale del Bersagliere',
+        badge: 'Pasticceria Fatta in Casa',
+        price: '€ 7,00',
+        images: [
+          'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=1200&q=80',
+          'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=80'
+        ],
+        desc: 'Morbidi savoiardi artigianali inzuppati nel caffè espresso 100% arabica, ricoperti da una spuma vellutata di mascarpone fresco e tuorli pastorizzati, finiti con spolverata di cacao amaro puro.',
+        ingredients: 'Mascarpone fresco, Uova pastorizzate, Savoiardi, Caffè espresso arabica, Zucchero di canna, Cacao amaro puro.',
+        wine: 'Passito di Pantelleria DOC o bicchierino di Limoncello freddo artigianale.',
+        tags: ['Fatto in Casa Ogni Giorno', 'Allergeni: Glutine, Uova, Lattosio']
+      }
+    };
+
+    /* ----------------------------------------------------
+       4. SLIDER SYSTEM CON EFFETTO 3D PERSPECTIVE FLIP
+       ---------------------------------------------------- */
+    let currentSlide = 0;
+    let totalSlides = 0;
+
+    function setupSlider(images, dishTitle) {
+      currentSlide = 0;
+      totalSlides = images.length;
+
+      const track = document.getElementById('slider-track');
+      const dotsContainer = document.getElementById('slider-dots');
+      
+      track.innerHTML = '';
+      dotsContainer.innerHTML = '';
+
+      images.forEach((imgSrc, idx) => {
+        // Container slide con stile 3D
+        const slideDiv = document.createElement('div');
+        slideDiv.className = 'slide-3d w-full h-full flex-shrink-0';
+        slideDiv.style.width = '100%';
+
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.alt = `${dishTitle} - Foto ${idx + 1}`;
+        img.className = 'w-full h-full object-cover select-none pointer-events-none';
+        slideDiv.appendChild(img);
+        track.appendChild(slideDiv);
+
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Foto ${idx + 1}`);
+        dot.className = `h-1.5 rounded-full transition-all duration-300 pointer-events-auto ${idx === 0 ? 'w-5 bg-gold-400' : 'w-1.5 bg-stone-500/60'}`;
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          goToSlide(idx);
+        });
+        dotsContainer.appendChild(dot);
+      });
+
+      updateSliderView();
+    }
+
+    function goToSlide(index) {
+      if (index < 0) index = totalSlides - 1;
+      if (index >= totalSlides) index = 0;
+      currentSlide = index;
+      updateSliderView();
+    }
+
+    function nextSlide(e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide(e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      goToSlide(currentSlide - 1);
+    }
+
+    function updateSliderView() {
+      const slides = document.querySelectorAll('.slide-3d');
+      slides.forEach((slide, idx) => {
+        const offset = idx - currentSlide;
+        if (offset === 0) {
+          // Slide attiva in primo piano 3D
+          slide.style.transform = `translateX(-${currentSlide * 100}%) perspective(800px) rotateY(0deg) scale(1) translateZ(0)`;
+          slide.style.opacity = '1';
+        } else if (offset > 0) {
+          // Slide successive con inclinazione 3D
+          slide.style.transform = `translateX(-${currentSlide * 100}%) perspective(800px) rotateY(-8deg) scale(0.95) translateZ(-20px)`;
+          slide.style.opacity = '0.7';
+        } else {
+          // Slide precedenti con inclinazione 3D
+          slide.style.transform = `translateX(-${currentSlide * 100}%) perspective(800px) rotateY(8deg) scale(0.95) translateZ(-20px)`;
+          slide.style.opacity = '0.7';
+        }
+      });
+
+      const dots = document.getElementById('slider-dots').children;
+      for (let i = 0; i < dots.length; i++) {
+        if (i === currentSlide) {
+          dots[i].className = 'h-1.5 rounded-full transition-all duration-300 w-5 bg-gold-400 shadow-sm pointer-events-auto';
+        } else {
+          dots[i].className = 'h-1.5 rounded-full transition-all duration-300 w-1.5 bg-stone-500/60 pointer-events-auto';
+        }
+      }
+    }
+
+    // Touch Gestures per Mobile
+    (function initSliderGestures() {
+      const wrapper = document.getElementById('slider-wrapper');
+      let startX = 0;
+      let startY = 0;
+      let isDragging = false;
+      let diffX = 0;
+
+      wrapper.addEventListener('touchstart', (e) => {
+        if (e.target.closest('button')) {
+          isDragging = false;
+          return;
+        }
+        if (e.touches.length === 1) {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          isDragging = true;
+          diffX = 0;
+        }
+      }, { passive: true });
+
+      wrapper.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        diffX = currentX - startX;
+        const diffY = currentY - startY;
+
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          if (e.cancelable) e.preventDefault();
+        }
+      }, { passive: false });
+
+      wrapper.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (diffX < -35) {
+          nextSlide();
+        } else if (diffX > 35) {
+          prevSlide();
+        }
+      });
+    })();
+
+    /* ----------------------------------------------------
+       5. MODAL LOGIC (COMPATTO & MINIMALISTA)
+       ---------------------------------------------------- */
+    function openDishModal(dishId) {
+      const data = dishesData[dishId];
+      if (!data) return;
+
+      document.getElementById('m-badge').textContent = data.badge;
+      document.getElementById('m-title').textContent = data.title;
+      document.getElementById('m-price').textContent = data.price;
+      document.getElementById('m-desc').textContent = data.desc;
+      document.getElementById('m-ingredients').textContent = data.ingredients;
+      document.getElementById('m-wine').textContent = data.wine;
+
+      setupSlider(data.images, data.title);
+
+      const tagsContainer = document.getElementById('m-tags');
+      tagsContainer.innerHTML = '';
+      data.tags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'px-2.5 py-0.5 rounded-full bg-dark-950 border border-stone-800 text-stone-300';
+        span.textContent = tag;
+        tagsContainer.appendChild(span);
+      });
+
+      document.getElementById('modal-scroll-body').scrollTop = 0;
+
+      const modal = document.getElementById('dish-modal');
+      modal.classList.remove('hidden');
+      modal.classList.remove('pointer-events-none');
+      
+      requestAnimationFrame(() => {
+        modal.classList.add('active');
+      });
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDishModal() {
+      const modal = document.getElementById('dish-modal');
+      modal.classList.remove('active');
+      modal.classList.add('pointer-events-none');
+      
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('dish-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeDishModal();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDishModal();
+      if (document.getElementById('dish-modal').classList.contains('active')) {
+        if (e.key === 'ArrowRight') nextSlide();
+        if (e.key === 'ArrowLeft') prevSlide();
+      }
+    });
+
+    /* ----------------------------------------------------
+       6. HERO 3D SCENE: Three.js Cloche & Particles
+       ---------------------------------------------------- */
+    (function initHero3D() {
+      const canvas = document.getElementById('hero-3d-canvas');
+      if (!canvas) return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 0, 9);
+
+      const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      const clocheGroup = new THREE.Group();
+
+      const clochePoints = [];
+      clochePoints.push(new THREE.Vector2(0, 0));
+      for (let i = 0; i <= 24; i++) {
+        const theta = (i / 24) * (Math.PI / 2);
+        clochePoints.push(new THREE.Vector2(Math.cos(theta) * 2.2, Math.sin(theta) * 1.5));
+      }
+      clochePoints.push(new THREE.Vector2(0.2, 1.7));
+      clochePoints.push(new THREE.Vector2(0.35, 1.85));
+      clochePoints.push(new THREE.Vector2(0, 1.95));
+
+      const clocheGeo = new THREE.LatheGeometry(clochePoints, 48);
+      const goldMaterial = new THREE.MeshStandardMaterial({
+        color: 0xc5a059,
+        metalness: 0.85,
+        roughness: 0.22,
+      });
+      const clocheMesh = new THREE.Mesh(clocheGeo, goldMaterial);
+      clocheGroup.add(clocheMesh);
+
+      const plateGeo = new THREE.CylinderGeometry(2.7, 2.5, 0.15, 48);
+      const plateMesh = new THREE.Mesh(plateGeo, goldMaterial);
+      plateMesh.position.y = -0.08;
+      clocheGroup.add(plateMesh);
+
+      const ringGeo = new THREE.TorusGeometry(2.8, 0.05, 16, 64);
+      const ringMesh = new THREE.Mesh(ringGeo, goldMaterial);
+      ringMesh.rotation.x = Math.PI / 2;
+      ringMesh.position.y = -0.08;
+      clocheGroup.add(ringMesh);
+
+      clocheGroup.position.set(0, -0.6, 0);
+      scene.add(clocheGroup);
+
+      const particleCount = 110;
+      const particleGeo = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+
+      for (let i = 0; i < particleCount * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 14;
+        positions[i + 1] = (Math.random() - 0.5) * 10;
+        positions[i + 2] = (Math.random() - 0.5) * 8;
+      }
+      particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+      const particleMat = new THREE.PointsMaterial({
+        color: 0xf3e5ab,
+        size: 0.055,
+        transparent: true,
+        opacity: 0.7,
+      });
+      const particles = new THREE.Points(particleGeo, particleMat);
+      scene.add(particles);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const mainPoint = new THREE.PointLight(0xffe29a, 2.5, 20);
+      mainPoint.position.set(3, 4, 5);
+      scene.add(mainPoint);
+
+      const rimLight = new THREE.DirectionalLight(0xc5a059, 1.8);
+      rimLight.position.set(-4, -2, -3);
+      scene.add(rimLight);
+
+      let mouseX = 0, mouseY = 0;
+      let targetRotX = 0.2, targetRotY = 0;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        targetRotY = mouseX * 0.45;
+        targetRotX = 0.25 - mouseY * 0.35;
+      });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      let clock = new THREE.Clock();
+      function animateHero() {
+        requestAnimationFrame(animateHero);
+        const elapsedTime = clock.getElapsedTime();
+
+        clocheGroup.position.y = -0.6 + Math.sin(elapsedTime * 1.4) * 0.12;
+        clocheGroup.rotation.y += (targetRotY + elapsedTime * 0.15 - clocheGroup.rotation.y) * 0.05;
+        clocheGroup.rotation.x += (targetRotX - clocheGroup.rotation.x) * 0.05;
+
+        particles.rotation.y = elapsedTime * 0.03;
+        particles.rotation.x = elapsedTime * 0.015;
+
+        renderer.render(scene, camera);
+      }
+      animateHero();
+    })();
+
+    /* ----------------------------------------------------
+       7. LOGICHE GENERALI: NAV MOBILE, FILTRO, RESERVATION
+       ---------------------------------------------------- */
+    const mobileBtn = document.getElementById('mobile-toggle');
+    const mobileNav = document.getElementById('mobile-nav');
+    mobileBtn.addEventListener('click', () => mobileNav.classList.toggle('hidden'));
+    mobileNav.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => mobileNav.classList.add('hidden'));
+    });
+
+    function filterMenu(category) {
+      const items = document.querySelectorAll('.menu-item');
+      const tabs = document.querySelectorAll('.menu-tab');
+
+      tabs.forEach(tab => {
+        if(tab.getAttribute('data-cat') === category) {
+          tab.classList.add('bg-gold-500', 'text-dark-950', 'font-bold');
+          tab.classList.remove('bg-dark-850', 'text-stone-300', 'hover:bg-stone-800');
+        } else {
+          tab.classList.remove('bg-gold-500', 'text-dark-950', 'font-bold');
+          tab.classList.add('bg-dark-850', 'text-stone-300', 'hover:bg-stone-800');
+        }
+      });
+
+      items.forEach(item => {
+        if (category === 'tutti' || item.classList.contains(category)) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    }
+
+    document.getElementById('reservation-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const msg = document.getElementById('booking-msg');
+      msg.classList.remove('hidden');
+      this.reset();
+      setTimeout(() => {
+        msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    });
+  </script>
+</body>
+</html>
